@@ -48,6 +48,7 @@ for attribute in dfTrain.keys():
         #dfTest = pd.concat([dfTest, newDf], axis=1)
         dfTest[attribute] = False
 
+"""
 for attribute in dfTest.keys():
     if attribute not in dfTrain.keys():
         #print(f"Adding missing feature {attributes}")
@@ -55,6 +56,7 @@ for attribute in dfTest.keys():
         #newDf = pd.DataFrame({attribute: list})
         #dfTrain = pd.concat([dfTrain, newDf], axis=1)
         dfTrain[attribute] = False
+"""
 
 # seperate X and Y (tuple and class)
 
