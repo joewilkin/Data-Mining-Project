@@ -3,8 +3,8 @@
 import pandas as pd
 
 # get train and test dataframes
-dfTrain = pd.read_csv("./datasets/train_users_2.csv", skipinitialspace=True)
-dfTest = pd.read_csv("./datasets/test.csv", skipinitialspace=True)
+dfTrain = pd.read_csv("../datasets/train_users_2.csv", skipinitialspace=True)
+dfTest = pd.read_csv("../datasets/test.csv", skipinitialspace=True)
 
 # remove tuples with unknown, untracked, and NaN values
 dfTrain = dfTrain[(dfTrain.values != "-unknown-").all(axis=1)]
