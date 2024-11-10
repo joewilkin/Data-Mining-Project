@@ -87,9 +87,6 @@ for _ in tqdm(range(1), desc=f"Testing Model"):
     predictions = svm.predict(X_test)
     accuracy_scores.append(accuracy_score(Y_test, predictions))
 
-
-import statistics
-
 print("=======================================================")
 print("SVM model:")
 print("Accuracy: " + str(accuracy_score(Y_test, predictions)))
