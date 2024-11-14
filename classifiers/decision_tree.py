@@ -1,10 +1,10 @@
 # code for decision tree classifier
 
 import pandas as pd
+from sklearn.model_selection import train_test_split
 
-# get train and test dataframes
+# get train dataframe
 dfTrain = pd.read_csv("../datasets/train_users_2.csv", skipinitialspace=True)
-dfTest = pd.read_csv("../datasets/test.csv", skipinitialspace=True)
 
 # get tuples whose classes need to be predicted
 dfPredict = pd.read_csv("../datasets/test_users.csv", skipinitialspace=True)
@@ -16,12 +16,6 @@ dfTrain = dfTrain[(dfTrain.values != "untracked").all(axis=1)]
 dfTrain = dfTrain[(dfTrain.values != "").all(axis=1)]
 dfTrain = dfTrain[(dfTrain.values != "NaN").all(axis=1)]
 dfTrain = dfTrain.dropna()
-
-dfTest = dfTest[(dfTest.values != "-unknown-").all(axis=1)]
-dfTest = dfTest[(dfTest.values != "untracked").all(axis=1)]
-dfTrain = dfTrain[(dfTrain.values != "").all(axis=1)]
-dfTest = dfTest[(dfTest.values != "NaN").all(axis=1)]
-dfTest = dfTest.dropna()
 """
 
 # save ids of tuples to be predicted
@@ -29,20 +23,16 @@ ids = dfPredict["id"].values
 
 # drop id attribute
 dfTrain = dfTrain.drop(["id"], axis=1)
-dfTest = dfTest.drop(["id"], axis=1)
 dfPredict = dfPredict.drop(["id"], axis=1)
 
 # for date/timestamp attributes, reduce them to just the year
 dfTrain["timestamp_first_active"] = dfTrain["timestamp_first_active"].astype("string").str.slice(stop=4)
-dfTest["timestamp_first_active"] = dfTest["timestamp_first_active"].astype("string").str.slice(stop=4)
 dfPredict["timestamp_first_active"] = dfPredict["timestamp_first_active"].astype("string").str.slice(stop=4)
 
 dfTrain["date_account_created"] = dfTrain["date_account_created"].str.slice(stop=4)
-dfTest["date_account_created"] = dfTest["date_account_created"].str.slice(stop=4)
 dfPredict["date_account_created"] = dfPredict["date_account_created"].str.slice(stop=4)
 
 dfTrain["date_first_booking"] = dfTrain["date_first_booking"].str.slice(stop=4)
-dfTest["date_first_booking"] = dfTest["date_first_booking"].str.slice(stop=4)
 dfPredict["date_first_booking"] = dfPredict["date_first_booking"].astype("string").str.slice(stop=4)
 
 
@@ -54,16 +44,11 @@ def oneHotBind(original_dataframe, feature_to_encode):
     return result
 
 dfTrain = oneHotBind(dfTrain, ["date_account_created", "timestamp_first_active", "date_first_booking", "gender", "age", "signup_method", "signup_flow", "language", "affiliate_channel", "affiliate_provider", "first_affiliate_tracked", "signup_app", "first_device_type", "first_browser"])
-dfTest = oneHotBind(dfTest, ["date_account_created", "timestamp_first_active", "date_first_booking", "gender", "age", "signup_method", "signup_flow", "language", "affiliate_channel", "affiliate_provider", "first_affiliate_tracked", "signup_app", "first_device_type", "first_browser"])
 dfPredict = oneHotBind(dfPredict, ["date_account_created", "timestamp_first_active", "date_first_booking", "gender", "age", "signup_method", "signup_flow", "language", "affiliate_channel", "affiliate_provider", "first_affiliate_tracked", "signup_app", "first_device_type", "first_browser"])
 
 
 # add missing attributes
 for attribute in dfTrain.keys():
-    if attribute not in dfTest.keys():
-        print(f"Adding missing feature {attribute} to test set")
-        list = [False] * len(dfTest.index)
-        dfTest[attribute] = False
     if attribute not in dfPredict.keys():
         print(f"Adding missing feature {attribute} to prediction set")
         list = [False] * len(dfPredict.index)
@@ -74,14 +59,12 @@ for attribute in dfPredict.keys():
         print(f"Adding missing feature {attribute} to training set")
         list = [False] * len(dfTrain.index)
         dfTrain[attribute] = False
-    if attribute not in dfTest.keys():
-        print(f"Adding missing feature {attribute} to test set")
-        list = [False] * len(dfTest.index)
-        dfTest[attribute] = False
 
 # seperate X and Y (tuple and class)
-X_train, Y_train = dfTrain.iloc[:,1:].values, dfTrain.iloc[:, 0].values
-X_test, Y_test = dfTest.iloc[:,1:].values, dfTest.iloc[:, 0].values
+X, Y = dfTrain.iloc[:,1:].values, dfTrain.iloc[:, 0].values
+
+# get train and test sets
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.33, random_state=42)
 
 
 # decision tree

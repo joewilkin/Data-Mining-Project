@@ -100,8 +100,8 @@ def encode_country(dataset):
 dfTrain, mapping = encode_country(dfTrain)
 dfTest, _ = encode_country(dfTest)
 
-dfTrain = dfTrain.head(int(len(dfTrain.index) / 10))
-dfTest = dfTest.head(int(len(dfTest.index) / 10))
+#dfTrain = dfTrain.head(int(len(dfTrain.index) / 10))
+#dfTest = dfTest.head(int(len(dfTest.index) / 10))
 
 # seperate X and Y (tuple and class)
 X_train = dfTrain.loc[:,dfTrain.columns !='country_destination'].values
@@ -122,7 +122,7 @@ print("Training model...")
 
 # display spinner while model is being trained and tested
 with Spinner():
-    mlp = MLPClassifier(hidden_layer_sizes=(104,104,104))
+    mlp = MLPClassifier(hidden_layer_sizes=(104,104,104), max_iter=1000)
     mlp.fit(X_train,Y_train)
 
 print("Testing model...")
