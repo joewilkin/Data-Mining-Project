@@ -7,6 +7,7 @@ import numpy as np
 dfTrain = pd.read_csv("../datasets/train_users_2.csv", skipinitialspace=True)
 dfTest = pd.read_csv("../datasets/test.csv", skipinitialspace=True)
 
+
 # get tuples whose classes need to be predicted
 dfPredict = pd.read_csv("../datasets/test_users.csv", skipinitialspace=True)
 
@@ -93,11 +94,14 @@ def encode_country(dataset):
     le = preprocessing.LabelEncoder()
     le = le.fit(dataset['country_destination'])
     dataset['country_destination'] = le.transform(dataset['country_destination'])
-    return dataset
+    mapping = dict(zip(le.classes_, le.transform(le.classes_)))
+    return dataset, mapping
 
-dfTrain = encode_country(dfTrain)
-dfTest = encode_country(dfTest)
+dfTrain, mapping = encode_country(dfTrain)
+dfTest, _ = encode_country(dfTest)
 
+dfTrain = dfTrain.head(int(len(dfTrain.index) / 10))
+dfTest = dfTest.head(int(len(dfTest.index) / 10))
 
 # seperate X and Y (tuple and class)
 X_train = dfTrain.loc[:,dfTrain.columns !='country_destination'].values
@@ -114,12 +118,16 @@ from spinner import Spinner
 
 # train and test model
 
-print("Training and testing model...")
+print("Training model...")
 
 # display spinner while model is being trained and tested
 with Spinner():
     svm = SVC(gamma='auto')
     svm.fit(X_train, Y_train)
+
+print("Testing model...")
+
+with Spinner():
     predictions = svm.predict(X_test)
     accuracy = accuracy_score(Y_test, predictions)
     report = classification_report(Y_test, predictions, zero_division=1)
@@ -129,14 +137,23 @@ print("SVM model:")
 print("Accuracy: " + str(accuracy_score(Y_test, predictions)))
 print(report)
 
-print("Making predicions...")
+print("Making predictions...")
 
 # display spinner while predictions are being made
 with Spinner():
     predictions = svm.predict(dfPredict.iloc[:,1:].values)
 
-frame = {"id": ids,
-         "country": predictions}
+# decode country
+decoded_predictions = ["nil"] * len(predictions)
+for i in range(len(predictions)):
+    for key, value in mapping.items():
+        if predictions[i] == value:
+            decoded_predictions[i] = key
+        
+frame = {
+    "id": ids,
+    "country": decoded_predictions
+    }
 
 output = pd.DataFrame(frame)
 

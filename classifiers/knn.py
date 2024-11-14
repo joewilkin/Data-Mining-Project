@@ -100,12 +100,16 @@ from spinner import Spinner
 
 # train and test model
 
-print("Training and testing model...")
+print("Training model...")
 
 # display spinner while model is being trained and tested
 with Spinner():
     knn = KNeighborsClassifier(n_neighbors=5)
     knn.fit(X_train, Y_train)
+
+print("Testing model...")
+
+with Spinner():
     predictions = knn.predict(X_test)
     accuracy = accuracy_score(Y_test, predictions)
     report = classification_report(Y_test, predictions, zero_division=1)
@@ -121,8 +125,10 @@ print("Making predicions...")
 with Spinner():
     predictions = knn.predict(dfPredict.iloc[:,1:].values)
 
-frame = {"id": ids,
-         "country": predictions}
+frame = {
+    "id": ids,
+    "country": predictions
+    }
 
 output = pd.DataFrame(frame)
 

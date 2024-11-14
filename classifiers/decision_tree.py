@@ -93,12 +93,16 @@ from spinner import Spinner
 
 # train and test model
 
-print("Training and testing model...")
+print("Training model...")
 
 # display spinner while model is being trained and tested
 with Spinner():
     d_tree = DecisionTreeClassifier()
     d_tree.fit(X_train, Y_train)
+
+print("Testing model...")
+
+with Spinner():
     predictions = d_tree.predict(X_test)
     accuracy = accuracy_score(Y_test, predictions)
     report = classification_report(Y_test, predictions, zero_division=1)
