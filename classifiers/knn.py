@@ -1,6 +1,7 @@
-# code for naive bayes classifier
+# code for knn classifier
 
 import pandas as pd
+import numpy as np
 
 # get train and test dataframes
 dfTrain = pd.read_csv("../datasets/train_users_2.csv", skipinitialspace=True)
@@ -44,6 +45,16 @@ dfTrain["date_first_booking"] = dfTrain["date_first_booking"].str.slice(stop=4)
 dfTest["date_first_booking"] = dfTest["date_first_booking"].str.slice(stop=4)
 dfPredict["date_first_booking"] = dfPredict["date_first_booking"].astype("string").str.slice(stop=4)
 
+
+# Convert to binary value for numerical attributed based on their mean value
+def numericalBinary(dataset, features):
+    dataset[features] = np.where(dataset[features] >= dataset[features].mean(), 1, 0)
+
+numericalBinary(dfTrain, ['age'])
+numericalBinary(dfTest, ['age'])
+numericalBinary(dfPredict, ['age'])
+
+
 # use one-hop encoder to convert each catagorical variable to T/F format
 def oneHotBind(original_dataframe, feature_to_encode):
     dummies = pd.get_dummies(original_dataframe[feature_to_encode])
@@ -80,9 +91,9 @@ for attribute in dfPredict.keys():
 X_train, Y_train = dfTrain.iloc[:,1:].values, dfTrain.iloc[:, 0].values
 X_test, Y_test = dfTest.iloc[:,1:].values, dfTest.iloc[:, 0].values
 
-# naive bayes
+# kn
 
-from sklearn.naive_bayes import GaussianNB
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
 from spinner import Spinner
@@ -93,14 +104,14 @@ print("Training and testing model...")
 
 # display spinner while model is being trained and tested
 with Spinner():
-    gnb = GaussianNB()
-    gnb.fit(X_train, Y_train)
-    predictions = gnb.predict(X_test)
+    knn = KNeighborsClassifier(n_neighbors=5)
+    knn.fit(X_train, Y_train)
+    predictions = knn.predict(X_test)
     accuracy = accuracy_score(Y_test, predictions)
     report = classification_report(Y_test, predictions, zero_division=1)
 
 print("=======================================================")
-print("Naive Bayes Model:")
+print("KNN Model:")
 print("Accuracy: " + str(accuracy_score(Y_test, predictions)))
 print(report)
 
@@ -108,14 +119,14 @@ print("Making predicions...")
 
 # display spinner while predictions are being made
 with Spinner():
-    predictions = gnb.predict(dfPredict.iloc[:,1:].values)
+    predictions = knn.predict(dfPredict.iloc[:,1:].values)
 
 frame = {"id": ids,
          "country": predictions}
 
 output = pd.DataFrame(frame)
 
-predictions_file = "../predictions/naive_bayes_predictions.csv"
+predictions_file = "../predictions/knn_predictions.csv"
 
 output.to_csv(predictions_file, index=False)
 

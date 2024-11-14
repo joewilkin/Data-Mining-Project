@@ -16,7 +16,7 @@ from tqdm import tqdm
 
 # randomly select a row from the training set and move it to the test set
 # display the loading bar
-for _ in tqdm (range (length), desc="Loading..."):
+for _ in tqdm (range (length), desc="Generating Test Set"):
     i = randrange(0, len(dfTrain.index))
     dfTest.loc[len(dfTest.index)] = dfTrain.iloc[i].values
     dfTrain = dfTrain.drop(dfTrain.index[i])
