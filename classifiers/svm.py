@@ -81,7 +81,7 @@ def encode_country(dataset):
 
 dfTrain, mapping = encode_country(dfTrain)
 
-#dfTrain = dfTrain.head(int(len(dfTrain.index) / 1000))
+dfTrain = dfTrain.head(int(len(dfTrain.index) / 10))
 
 # seperate X and Y (tuple and class)
 X = dfTrain.loc[:,dfTrain.columns !='country_destination'].values
@@ -103,7 +103,7 @@ print("Training model...")
 
 # display spinner while model is being trained and tested
 with Spinner():
-    svm = SVC(gamma='auto')
+    svm = SVC(gamma='auto', probability=True)
     svm.fit(X_train, Y_train)
 
 print("Testing model...")
@@ -120,20 +120,61 @@ print(report)
 
 print("Making predictions...")
 
+def bubble_sort(list):
+    for i in range(len(list) - 1):
+        for j in range(len(list) - i - 1):
+            if list[j][1] < list[j + 1][1]:
+                temp = list[j]
+                list[j] = list[j + 1]
+                list[j + 1] = temp
+    return list
+
+
 # display spinner while predictions are being made
 with Spinner():
     predictions = svm.predict(dfPredict.iloc[:,1:].values)
+    class_probabilities = svm.predict_proba(dfPredict.iloc[:,1:].values)
 
+    expanded_ids = []
+    expanded_countries = []
+
+    num = 0
+    for obs in class_probabilities:
+        probs = []
+        for i in range(len(obs)):
+            if obs[i] > .1 and len(probs) < 5:
+                probs.append([svm.classes_[i], obs[i]])
+        probs = bubble_sort(probs)
+        for p in probs:
+            expanded_ids.append(ids[num])
+            expanded_countries.append(p[0])
+        num += 1
+
+"""
 # decode country
 decoded_predictions = ["nil"] * len(predictions)
 for i in range(len(predictions)):
     for key, value in mapping.items():
         if predictions[i] == value:
             decoded_predictions[i] = key
-        
+"""
+
+# decode country
+decoded_expanded_countries = ["nil"] * len(expanded_countries)
+for i in range(len(expanded_countries)):
+    for key, value in mapping.items():
+        if expanded_countries[i] == value:
+            decoded_expanded_countries[i] = key
+"""    
 frame = {
     "id": ids,
     "country": decoded_predictions
+    }
+"""
+
+frame = {
+    "id": expanded_ids,
+    "country": decoded_expanded_countries
     }
 
 output = pd.DataFrame(frame)

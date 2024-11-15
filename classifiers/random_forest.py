@@ -96,14 +96,47 @@ print(report)
 
 print("Making predicions...")
 
+def bubble_sort(list):
+    for i in range(len(list) - 1):
+        for j in range(len(list) - i - 1):
+            if list[j][1] < list[j + 1][1]:
+                temp = list[j]
+                list[j] = list[j + 1]
+                list[j + 1] = temp
+    return list
+
 # display spinner while predictions are being made
 with Spinner():
     predictions = forest.predict(dfPredict.iloc[:,1:].values)
+    class_probabilities = forest.predict_proba(dfPredict.iloc[:,1:].values)
 
+    expanded_ids = []
+    expanded_countries = []
+
+    num = 0
+    for obs in class_probabilities:
+        probs = []
+        for i in range(len(obs)):
+            if obs[i] > .05 and len(probs) < 5:
+                probs.append([forest.classes_[i], obs[i]])
+        probs = bubble_sort(probs)
+        for p in probs:
+            expanded_ids.append(ids[num])
+            expanded_countries.append(p[0])
+        num += 1
+
+"""
 frame = {
     "id": ids,
     "country": predictions
     }
+"""
+
+frame = {
+    "id": expanded_ids,
+    "country": expanded_countries
+    }
+
 
 output = pd.DataFrame(frame)
 

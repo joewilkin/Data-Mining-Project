@@ -102,16 +102,49 @@ print("KNN Model:")
 print("Accuracy: " + str(accuracy_score(Y_test, predictions)))
 print(report)
 
-print("Making predicions...")
+print("Making predictions...")
+
+def bubble_sort(list):
+    for i in range(len(list) - 1):
+        for j in range(len(list) - i - 1):
+            if list[j][1] < list[j + 1][1]:
+                temp = list[j]
+                list[j] = list[j + 1]
+                list[j + 1] = temp
+    return list
 
 # display spinner while predictions are being made
 with Spinner():
     predictions = knn.predict(dfPredict.iloc[:,1:].values)
+    class_probabilities = knn.predict_proba(dfPredict.iloc[:,1:].values)
+    
+    expanded_ids = []
+    expanded_countries = []
 
+    num = 0
+    for obs in class_probabilities:
+        probs = []
+        for i in range(len(obs)):
+            if obs[i] > .2 and len(probs) < 5:
+                probs.append([knn.classes_[i], obs[i]])
+        probs = bubble_sort(probs)
+        for p in probs:
+            expanded_ids.append(ids[num])
+            expanded_countries.append(p[0])
+        num += 1
+
+"""
 frame = {
     "id": ids,
     "country": predictions
     }
+"""
+
+frame = {
+    "id": expanded_ids,
+    "country": expanded_countries
+    }
+
 
 output = pd.DataFrame(frame)
 
@@ -120,3 +153,4 @@ predictions_file = "../predictions/knn_predictions.csv"
 output.to_csv(predictions_file, index=False)
 
 print(f"Wrote predictions to {predictions_file}")
+
