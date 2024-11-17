@@ -39,7 +39,6 @@ dfPredict = dfPredict.drop(["timestamp_first_active"], axis=1)
 #dfTrain = dfTrain.drop(["first_browser"], axis=1)
 #dfPredict = dfPredict.drop(["first_browser"], axis=1)
 
-
 # for remaining date/timestamp attributes, reduce them to just the year and month
 # dfTrain["timestamp_first_active"] = dfTrain["timestamp_first_active"].astype("string").str.slice(stop=6)
 #dfPredict["timestamp_first_active"] = dfPredict["timestamp_first_active"].astype("string").str.slice(stop=6)
@@ -109,7 +108,6 @@ for attribute in dfPredict.keys():
 
 Y = dfTrain.iloc[:, 1].values
 X = pd.concat([dfTrain.iloc[:, :1], dfTrain.iloc[:, 2:]], axis=1).values
-
 
 # get train and test sets
 X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.33, random_state=42)
@@ -201,12 +199,12 @@ print(f"Wrote predictions to {predictions_file}")
 from sklearn import tree
 import matplotlib.pyplot as plt
 
-print("Generating images of trees 1-5...\n")
+print("Generating images of trees...\n")
 
 with Spinner():
-    for i in range(5):
+    for i in range(len(forest.estimators_)):
         fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(4,4), dpi=800)
-        tree.plot_tree(forest.estimators_[i], class_names=True, max_depth=4)
+        tree.plot_tree(forest.estimators_[i], max_depth=4, filled=True, feature_names=dfTrain.columns, class_names=forest.classes_)
         fig.savefig(f'./forest_trees/tree{i+1}.png')
         print(f"Saving image of tree {i+1} to ./forest_trees/tree{i+1}.png")
 

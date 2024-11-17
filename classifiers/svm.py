@@ -28,15 +28,16 @@ ids = dfPredict["id"].values
 dfTrain = dfTrain.drop(["id"], axis=1)
 dfPredict = dfPredict.drop(["id"], axis=1)
 
-# for date/timestamp attributes, reduce them to just the year
-dfTrain["timestamp_first_active"] = dfTrain["timestamp_first_active"].astype("string").str.slice(stop=4)
-dfPredict["timestamp_first_active"] = dfPredict["timestamp_first_active"].astype("string").str.slice(stop=4)
+# drop date attributes
+dfTrain = dfTrain.drop(["date_first_booking"], axis=1)
+dfPredict = dfPredict.drop(["date_first_booking"], axis=1)
 
-dfTrain["date_account_created"] = dfTrain["date_account_created"].str.slice(stop=4)
-dfPredict["date_account_created"] = dfPredict["date_account_created"].str.slice(stop=4)
+dfTrain = dfTrain.drop(["date_account_created"], axis=1)
+dfPredict = dfPredict.drop(["date_account_created"], axis=1)
 
-dfTrain["date_first_booking"] = dfTrain["date_first_booking"].str.slice(stop=4)
-dfPredict["date_first_booking"] = dfPredict["date_first_booking"].astype("string").str.slice(stop=4)
+dfTrain = dfTrain.drop(["timestamp_first_active"], axis=1)
+dfPredict = dfPredict.drop(["timestamp_first_active"], axis=1)
+
 
 # Convert to binary value for numerical attributed based on their mean value
 def numericalBinary(dataset, features):
@@ -52,8 +53,8 @@ def oneHotBind(original_dataframe, feature_to_encode):
     result = result.drop(feature_to_encode, axis=1)
     return result
 
-dfTrain = oneHotBind(dfTrain, ["date_account_created", "timestamp_first_active", "date_first_booking", "gender", "signup_method", "signup_flow", "language", "affiliate_channel", "affiliate_provider", "first_affiliate_tracked", "signup_app", "first_device_type", "first_browser"])
-dfPredict = oneHotBind(dfPredict, ["date_account_created", "timestamp_first_active", "date_first_booking", "gender", "signup_method", "signup_flow", "language", "affiliate_channel", "affiliate_provider", "first_affiliate_tracked", "signup_app", "first_device_type", "first_browser"])
+dfTrain = oneHotBind(dfTrain, ["gender", "signup_method", "signup_flow", "language", "affiliate_channel", "affiliate_provider", "first_affiliate_tracked", "signup_app", "first_device_type", "first_browser"])
+dfPredict = oneHotBind(dfPredict, ["gender", "signup_method", "signup_flow", "language", "affiliate_channel", "affiliate_provider", "first_affiliate_tracked", "signup_app", "first_device_type", "first_browser"])
 
 # add missing attributes
 for attribute in dfTrain.keys():
@@ -127,6 +128,10 @@ def bubble_sort(list):
                 temp = list[j]
                 list[j] = list[j + 1]
                 list[j + 1] = temp
+
+    if len(list) > 5:
+        return list[:5]
+
     return list
 
 
@@ -142,7 +147,7 @@ with Spinner():
     for obs in class_probabilities:
         probs = []
         for i in range(len(obs)):
-            if obs[i] > .1 and len(probs) < 5:
+            if obs[i] > 0:
                 probs.append([svm.classes_[i], obs[i]])
         probs = bubble_sort(probs)
         for p in probs:
