@@ -2,6 +2,7 @@
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
+import numpy as np
 
 # get train dataframe
 dfTrain = pd.read_csv("../datasets/train_users_2.csv", skipinitialspace=True)
@@ -25,16 +26,56 @@ ids = dfPredict["id"].values
 dfTrain = dfTrain.drop(["id"], axis=1)
 dfPredict = dfPredict.drop(["id"], axis=1)
 
-# for date/timestamp attributes, reduce them to just the year
-dfTrain["timestamp_first_active"] = dfTrain["timestamp_first_active"].astype("string").str.slice(stop=4)
-dfPredict["timestamp_first_active"] = dfPredict["timestamp_first_active"].astype("string").str.slice(stop=4)
+# drop date_first_booking bc it does not appear in prediction set
+dfTrain = dfTrain.drop(["date_first_booking"], axis=1)
+dfPredict = dfPredict.drop(["date_first_booking"], axis=1)
 
-dfTrain["date_account_created"] = dfTrain["date_account_created"].str.slice(stop=4)
-dfPredict["date_account_created"] = dfPredict["date_account_created"].str.slice(stop=4)
+dfTrain = dfTrain.drop(["date_account_created"], axis=1)
+dfPredict = dfPredict.drop(["date_account_created"], axis=1)
 
-dfTrain["date_first_booking"] = dfTrain["date_first_booking"].str.slice(stop=4)
-dfPredict["date_first_booking"] = dfPredict["date_first_booking"].astype("string").str.slice(stop=4)
+dfTrain = dfTrain.drop(["timestamp_first_active"], axis=1)
+dfPredict = dfPredict.drop(["timestamp_first_active"], axis=1)
 
+#dfTrain = dfTrain.drop(["first_browser"], axis=1)
+#dfPredict = dfPredict.drop(["first_browser"], axis=1)
+
+
+# for remaining date/timestamp attributes, reduce them to just the year and month
+# dfTrain["timestamp_first_active"] = dfTrain["timestamp_first_active"].astype("string").str.slice(stop=6)
+#dfPredict["timestamp_first_active"] = dfPredict["timestamp_first_active"].astype("string").str.slice(stop=6)
+
+#dfTrain["date_account_created"] = dfTrain["date_account_created"].str.slice(stop=7)
+#dfPredict["date_account_created"] = dfPredict["date_account_created"].str.slice(stop=7)
+
+
+#dfTrain.drop(dfTrain[dfTrain["date_account_created"].astype("string").str.slice(stop=4) != "2014"].index, inplace=True)
+#dfTrain.drop(dfTrain[dfTrain["timestamp_first_active"].astype("string").str.slice(stop=4) != "2014"].index, inplace=True)
+
+"""
+def encode_timestamp(timestamp):
+    year = int(str(timestamp)[:4])
+    month = int(str(timestamp)[4:6])
+    day = int(str(timestamp)[6:])
+    return (10000*year + 100*month + day) 
+
+def encode_timestamp2(timestamp):
+    year = int(str(timestamp)[:4])
+    month = int(str(timestamp)[5:7])
+    day = int(str(timestamp)[8:])
+    return np.int64(10000*year + 100*month + day) 
+ 
+for i in range(len(dfTrain.index)):
+    dfTrain["timestamp_first_active"].values[i] = encode_timestamp(dfTrain["timestamp_first_active"].values[i])
+
+for i in range(len(dfPredict.index)):
+    dfPredict["timestamp_first_active"].values[i] = encode_timestamp(dfPredict["timestamp_first_active"].values[i])
+
+for i in range(len(dfTrain.index)):
+    dfTrain["date_account_created"].values[i] = encode_timestamp2(dfTrain["date_account_created"].values[i])
+
+for i in range(len(dfPredict.index)):
+    dfPredict["date_account_created"].values[i] = encode_timestamp2(dfPredict["date_account_created"].values[i])
+"""
 
 # one-hot encoder to convert each catagorical variable to T/F format
 def oneHotBind(original_dataframe, feature_to_encode):
@@ -43,8 +84,10 @@ def oneHotBind(original_dataframe, feature_to_encode):
     result = result.drop(feature_to_encode, axis=1)
     return result
 
-dfTrain = oneHotBind(dfTrain, ["date_account_created", "timestamp_first_active", "date_first_booking", "gender", "age", "signup_method", "signup_flow", "language", "affiliate_channel", "affiliate_provider", "first_affiliate_tracked", "signup_app", "first_device_type", "first_browser"])
-dfPredict = oneHotBind(dfPredict, ["date_account_created", "timestamp_first_active", "date_first_booking", "gender", "age", "signup_method", "signup_flow", "language", "affiliate_channel", "affiliate_provider", "first_affiliate_tracked", "signup_app", "first_device_type", "first_browser"])
+dfTrain = oneHotBind(dfTrain, ["gender", "signup_method", "signup_flow", "language", "affiliate_channel", "affiliate_provider", "first_affiliate_tracked", "signup_app", "first_device_type", "first_browser"])
+dfPredict = oneHotBind(dfPredict, ["gender", "signup_method", "signup_flow", "language", "affiliate_channel", "affiliate_provider", "first_affiliate_tracked", "signup_app", "first_device_type", "first_browser"])
+#dfTrain = oneHotBind(dfTrain, ["date_account_created", "gender", "age", "signup_method", "signup_flow", "language", "affiliate_channel", "affiliate_provider", "first_affiliate_tracked", "signup_app", "first_device_type", "first_browser"])
+#dfPredict = oneHotBind(dfPredict, ["date_account_created", "gender", "age", "signup_method", "signup_flow", "language", "affiliate_channel", "affiliate_provider", "first_affiliate_tracked", "signup_app", "first_device_type", "first_browser"])
 
 
 # add missing attributes
@@ -61,7 +104,12 @@ for attribute in dfPredict.keys():
         dfTrain[attribute] = False
 
 # seperate X and Y (tuple and class)
-X, Y = dfTrain.iloc[:,1:].values, dfTrain.iloc[:, 0].values
+#X, Y = dfTrain.iloc[:,1:].values, dfTrain.iloc[:, 0].values
+#X, Y = dfTrain.iloc[:,:3:].values, dfTrain.iloc[:, 3].values
+
+Y = dfTrain.iloc[:, 1].values
+X = pd.concat([dfTrain.iloc[:, :1], dfTrain.iloc[:, 2:]], axis=1).values
+
 
 # get train and test sets
 X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.33, random_state=42)
@@ -79,7 +127,7 @@ print("Training model...")
 
 # display spinner while model is being trained and tested
 with Spinner():
-    forest = RandomForestClassifier()
+    forest = RandomForestClassifier(random_state=47)
     forest.fit(X_train, Y_train)
 
 print("Testing model...")
@@ -94,7 +142,7 @@ print("Random Forest:")
 print("Accuracy:", accuracy)
 print(report)
 
-print("Making predicions...")
+print("Making predictions...")
 
 def bubble_sort(list):
     for i in range(len(list) - 1):
@@ -103,6 +151,10 @@ def bubble_sort(list):
                 temp = list[j]
                 list[j] = list[j + 1]
                 list[j + 1] = temp
+    
+    if len(list) > 5:
+        return list[:5]
+    
     return list
 
 # display spinner while predictions are being made
@@ -117,7 +169,7 @@ with Spinner():
     for obs in class_probabilities:
         probs = []
         for i in range(len(obs)):
-            if obs[i] > .05 and len(probs) < 5:
+            if obs[i] > 0:
                 probs.append([forest.classes_[i], obs[i]])
         probs = bubble_sort(probs)
         for p in probs:
@@ -145,4 +197,17 @@ predictions_file = "../predictions/random_forest_predictions.csv"
 output.to_csv(predictions_file, index=False)
 
 print(f"Wrote predictions to {predictions_file}")
+
+from sklearn import tree
+import matplotlib.pyplot as plt
+
+print("Generating images of trees 1-5...\n")
+
+with Spinner():
+    for i in range(5):
+        fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(4,4), dpi=800)
+        tree.plot_tree(forest.estimators_[i], class_names=True, max_depth=4)
+        fig.savefig(f'./forest_trees/tree{i+1}.png')
+        print(f"Saving image of tree {i+1} to ./forest_trees/tree{i+1}.png")
+
 
