@@ -125,7 +125,7 @@ print("Training model...")
 
 # display spinner while model is being trained and tested
 with Spinner():
-    forest = RandomForestClassifier(random_state=47)
+    forest = RandomForestClassifier(random_state=47, max_depth=5)
     forest.fit(X_train, Y_train)
 
 print("Testing model...")
@@ -199,6 +199,7 @@ print(f"Wrote predictions to {predictions_file}")
 from sklearn import tree
 import matplotlib.pyplot as plt
 
+"""
 print("Generating images of trees...\n")
 
 with Spinner():
@@ -208,4 +209,4 @@ with Spinner():
         fig.savefig(f'./forest_trees/tree{i+1}.png')
         print(f"Saving image of tree {i+1} to ./forest_trees/tree{i+1}.png")
 
-
+"""
