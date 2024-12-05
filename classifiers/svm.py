@@ -82,8 +82,6 @@ def encode_country(dataset):
 
 dfTrain, mapping = encode_country(dfTrain)
 
-dfTrain = dfTrain.head(int(len(dfTrain.index) / 10))
-
 # seperate X and Y (tuple and class)
 X = dfTrain.loc[:,dfTrain.columns !='country_destination'].values
 Y = dfTrain['country_destination'].values

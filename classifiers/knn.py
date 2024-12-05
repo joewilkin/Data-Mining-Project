@@ -4,56 +4,45 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 
-
 # get train dataframe
 dfTrain = pd.read_csv("../datasets/train_users_2.csv", skipinitialspace=True)
 
 # get tuples whose classes need to be predicted
 dfPredict = pd.read_csv("../datasets/test_users.csv", skipinitialspace=True)
 
-"""
-# remove tuples with unknown, untracked, empty, and NaN values
-dfTrain = dfTrain[(dfTrain.values != "-unknown-").all(axis=1)]
-dfTrain = dfTrain[(dfTrain.values != "untracked").all(axis=1)]
-dfTrain = dfTrain[(dfTrain.values != "").all(axis=1)]
-dfTrain = dfTrain[(dfTrain.values != "NaN").all(axis=1)]
-dfTrain = dfTrain.dropna()
-"""
-
 # save ids of tuples to be predicted
 ids = dfPredict["id"].values
 
 # drop id attribute
 dfTrain = dfTrain.drop(["id"], axis=1)
+dfPredict = dfPredict.drop(["id"], axis=1)
 
-# for date/timestamp attributes, reduce them to just the year
-dfTrain["timestamp_first_active"] = dfTrain["timestamp_first_active"].astype("string").str.slice(stop=4)
-dfPredict["timestamp_first_active"] = dfPredict["timestamp_first_active"].astype("string").str.slice(stop=4)
+# drop date attributes
+dfTrain = dfTrain.drop(["date_first_booking"], axis=1)
+dfPredict = dfPredict.drop(["date_first_booking"], axis=1)
 
-dfTrain["date_account_created"] = dfTrain["date_account_created"].str.slice(stop=4)
-dfPredict["date_account_created"] = dfPredict["date_account_created"].str.slice(stop=4)
+dfTrain = dfTrain.drop(["date_account_created"], axis=1)
+dfPredict = dfPredict.drop(["date_account_created"], axis=1)
 
-dfTrain["date_first_booking"] = dfTrain["date_first_booking"].str.slice(stop=4)
-dfPredict["date_first_booking"] = dfPredict["date_first_booking"].astype("string").str.slice(stop=4)
-
+dfTrain = dfTrain.drop(["timestamp_first_active"], axis=1)
+dfPredict = dfPredict.drop(["timestamp_first_active"], axis=1)
 
 # Convert to binary value for numerical attributed based on their mean value
 def numericalBinary(dataset, features):
     dataset[features] = np.where(dataset[features] >= dataset[features].mean(), 1, 0)
 
-numericalBinary(dfTrain, ['age'])
-numericalBinary(dfPredict, ['age'])
+#numericalBinary(dfTrain, ['age'])
+#numericalBinary(dfPredict, ['age'])
 
-
-# use one-hop encoder to convert each catagorical variable to T/F format
+# use one-hot encoder to convert each catagorical variable to T/F format
 def oneHotBind(original_dataframe, feature_to_encode):
     dummies = pd.get_dummies(original_dataframe[feature_to_encode])
     result = pd.concat([original_dataframe, dummies], axis=1)
     result = result.drop(feature_to_encode, axis=1)
     return result
 
-dfTrain = oneHotBind(dfTrain, ["date_account_created", "timestamp_first_active", "date_first_booking", "gender", "age", "signup_method", "signup_flow", "language", "affiliate_channel", "affiliate_provider", "first_affiliate_tracked", "signup_app", "first_device_type", "first_browser"])
-dfPredict = oneHotBind(dfPredict, ["date_account_created", "timestamp_first_active", "date_first_booking", "gender", "age", "signup_method", "signup_flow", "language", "affiliate_channel", "affiliate_provider", "first_affiliate_tracked", "signup_app", "first_device_type", "first_browser"])
+dfTrain = oneHotBind(dfTrain, ["gender", "signup_method", "signup_flow", "language", "affiliate_channel", "affiliate_provider", "first_affiliate_tracked", "signup_app", "first_device_type", "first_browser"])
+dfPredict = oneHotBind(dfPredict, ["gender", "signup_method", "signup_flow", "language", "affiliate_channel", "affiliate_provider", "first_affiliate_tracked", "signup_app", "first_device_type", "first_browser"])
 
 # add missing attributes
 for attribute in dfTrain.keys():
@@ -69,7 +58,8 @@ for attribute in dfPredict.keys():
         dfTrain[attribute] = False
 
 # seperate X and Y (tuple and class)
-X, Y = dfTrain.iloc[:,1:].values, dfTrain.iloc[:, 0].values
+Y = dfTrain.iloc[:, 1].values
+X = pd.concat([dfTrain.iloc[:, :1], dfTrain.iloc[:, 2:]], axis=1).values
 
 # get train and test sets
 X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.33, random_state=42)
@@ -111,6 +101,10 @@ def bubble_sort(list):
                 temp = list[j]
                 list[j] = list[j + 1]
                 list[j + 1] = temp
+
+    if len(list) > 5:
+        return list[:5]
+
     return list
 
 # display spinner while predictions are being made
@@ -125,20 +119,13 @@ with Spinner():
     for obs in class_probabilities:
         probs = []
         for i in range(len(obs)):
-            if obs[i] > .2 and len(probs) < 5:
+            if obs[i] > 0:
                 probs.append([knn.classes_[i], obs[i]])
         probs = bubble_sort(probs)
         for p in probs:
             expanded_ids.append(ids[num])
             expanded_countries.append(p[0])
         num += 1
-
-"""
-frame = {
-    "id": ids,
-    "country": predictions
-    }
-"""
 
 frame = {
     "id": expanded_ids,

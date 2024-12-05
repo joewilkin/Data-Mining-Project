@@ -175,7 +175,7 @@ frame = {
 
 output = pd.DataFrame(frame)
 
-predictions_file = "../predictions/svm_predictions.csv"
+predictions_file = "../predictions/neural_network_predictions.csv"
 
 output.to_csv(predictions_file, index=False)
 

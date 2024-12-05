@@ -3,12 +3,26 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 # get train dataframe
 dfTrain = pd.read_csv("../datasets/train_users_2.csv", skipinitialspace=True)
 
 # get tuples whose classes need to be predicted
 dfPredict = pd.read_csv("../datasets/test_users.csv", skipinitialspace=True)
+
+'''
+# remove tuples with ages above 100 and below 15
+dfTrain = dfTrain.drop(dfTrain[dfTrain['age'] > 100].index)
+dfTrain = dfTrain.drop(dfTrain[dfTrain['age'] < 15].index)
+
+
+sns.histplot(data=dfTrain, x="age")
+plt.show()
+
+'''
+
 
 """
 # remove tuples with unknown, untracked, empty, and NaN values
@@ -26,7 +40,7 @@ ids = dfPredict["id"].values
 dfTrain = dfTrain.drop(["id"], axis=1)
 dfPredict = dfPredict.drop(["id"], axis=1)
 
-# drop date_first_booking bc it does not appear in prediction set
+# drop timestamp attributes
 dfTrain = dfTrain.drop(["date_first_booking"], axis=1)
 dfPredict = dfPredict.drop(["date_first_booking"], axis=1)
 
@@ -36,19 +50,7 @@ dfPredict = dfPredict.drop(["date_account_created"], axis=1)
 dfTrain = dfTrain.drop(["timestamp_first_active"], axis=1)
 dfPredict = dfPredict.drop(["timestamp_first_active"], axis=1)
 
-#dfTrain = dfTrain.drop(["first_browser"], axis=1)
-#dfPredict = dfPredict.drop(["first_browser"], axis=1)
-
-# for remaining date/timestamp attributes, reduce them to just the year and month
-# dfTrain["timestamp_first_active"] = dfTrain["timestamp_first_active"].astype("string").str.slice(stop=6)
-#dfPredict["timestamp_first_active"] = dfPredict["timestamp_first_active"].astype("string").str.slice(stop=6)
-
-#dfTrain["date_account_created"] = dfTrain["date_account_created"].str.slice(stop=7)
-#dfPredict["date_account_created"] = dfPredict["date_account_created"].str.slice(stop=7)
-
-
-#dfTrain.drop(dfTrain[dfTrain["date_account_created"].astype("string").str.slice(stop=4) != "2014"].index, inplace=True)
-#dfTrain.drop(dfTrain[dfTrain["timestamp_first_active"].astype("string").str.slice(stop=4) != "2014"].index, inplace=True)
+# code to encode timestamps (no longer used)
 
 """
 def encode_timestamp(timestamp):
@@ -85,9 +87,6 @@ def oneHotBind(original_dataframe, feature_to_encode):
 
 dfTrain = oneHotBind(dfTrain, ["gender", "signup_method", "signup_flow", "language", "affiliate_channel", "affiliate_provider", "first_affiliate_tracked", "signup_app", "first_device_type", "first_browser"])
 dfPredict = oneHotBind(dfPredict, ["gender", "signup_method", "signup_flow", "language", "affiliate_channel", "affiliate_provider", "first_affiliate_tracked", "signup_app", "first_device_type", "first_browser"])
-#dfTrain = oneHotBind(dfTrain, ["date_account_created", "gender", "age", "signup_method", "signup_flow", "language", "affiliate_channel", "affiliate_provider", "first_affiliate_tracked", "signup_app", "first_device_type", "first_browser"])
-#dfPredict = oneHotBind(dfPredict, ["date_account_created", "gender", "age", "signup_method", "signup_flow", "language", "affiliate_channel", "affiliate_provider", "first_affiliate_tracked", "signup_app", "first_device_type", "first_browser"])
-
 
 # add missing attributes
 for attribute in dfTrain.keys():
@@ -125,7 +124,7 @@ print("Training model...")
 
 # display spinner while model is being trained and tested
 with Spinner():
-    forest = RandomForestClassifier(random_state=47, max_depth=5)
+    forest = RandomForestClassifier(random_state=47)
     forest.fit(X_train, Y_train)
 
 print("Testing model...")
@@ -198,6 +197,9 @@ print(f"Wrote predictions to {predictions_file}")
 
 from sklearn import tree
 import matplotlib.pyplot as plt
+
+#sns.scatterplot(data=dfPredict, x="age", y="language", hue="")
+#plt.show()
 
 """
 print("Generating images of trees...\n")
