@@ -1,1 +1,5 @@
-# README
+# Code for Group 7's models
+
+The code for all of our models can be found in the "classifiers" directory. To run the models, simply enter that directory and run the code using python. The code will not work if you attempt to run it from outside this directory because the path to the datasets will not be the same. 
+
+All of our preditions, which have been entered into the Kaggle Airbnb New User Booking competition's webpage to generate our scores, are also included, and can be found under the "predictions" directory.
