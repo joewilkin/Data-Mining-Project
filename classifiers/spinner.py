@@ -4,7 +4,7 @@ import threading
 
 class Spinner:
     busy = False
-    delay = 0.5
+    delay = 0.1
 
     @staticmethod
     def spinning_cursor():

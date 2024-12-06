@@ -31,8 +31,8 @@ dfPredict = dfPredict.drop(["timestamp_first_active"], axis=1)
 def numericalBinary(dataset, features):
     dataset[features] = np.where(dataset[features] >= dataset[features].mean(), 1, 0)
 
-#numericalBinary(dfTrain, ['age'])
-#numericalBinary(dfPredict, ['age'])
+numericalBinary(dfTrain, ['age'])
+numericalBinary(dfPredict, ['age'])
 
 # use one-hot encoder to convert each catagorical variable to T/F format
 def oneHotBind(original_dataframe, feature_to_encode):

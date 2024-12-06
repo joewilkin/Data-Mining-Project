@@ -12,18 +12,6 @@ dfTrain = pd.read_csv("../datasets/train_users_2.csv", skipinitialspace=True)
 # get tuples whose classes need to be predicted
 dfPredict = pd.read_csv("../datasets/test_users.csv", skipinitialspace=True)
 
-'''
-# remove tuples with ages above 100 and below 15
-dfTrain = dfTrain.drop(dfTrain[dfTrain['age'] > 100].index)
-dfTrain = dfTrain.drop(dfTrain[dfTrain['age'] < 15].index)
-
-
-sns.histplot(data=dfTrain, x="age")
-plt.show()
-
-'''
-
-
 """
 # remove tuples with unknown, untracked, empty, and NaN values
 dfTrain = dfTrain[(dfTrain.values != "-unknown-").all(axis=1)]
@@ -102,9 +90,6 @@ for attribute in dfPredict.keys():
         dfTrain[attribute] = False
 
 # seperate X and Y (tuple and class)
-#X, Y = dfTrain.iloc[:,1:].values, dfTrain.iloc[:, 0].values
-#X, Y = dfTrain.iloc[:,:3:].values, dfTrain.iloc[:, 3].values
-
 Y = dfTrain.iloc[:, 1].values
 X = pd.concat([dfTrain.iloc[:, :1], dfTrain.iloc[:, 2:]], axis=1).values
 
@@ -174,12 +159,6 @@ with Spinner():
             expanded_countries.append(p[0])
         num += 1
 
-"""
-frame = {
-    "id": ids,
-    "country": predictions
-    }
-"""
 
 frame = {
     "id": expanded_ids,
@@ -198,8 +177,7 @@ print(f"Wrote predictions to {predictions_file}")
 from sklearn import tree
 import matplotlib.pyplot as plt
 
-#sns.scatterplot(data=dfPredict, x="age", y="language", hue="")
-#plt.show()
+# save images of trees
 
 """
 print("Generating images of trees...\n")

@@ -51,46 +51,6 @@ dfPredict = dfPredict.drop(["date_account_created"], axis=1)
 dfTrain = dfTrain.drop(["timestamp_first_active"], axis=1)
 dfPredict = dfPredict.drop(["timestamp_first_active"], axis=1)
 
-#dfTrain = dfTrain.drop(["first_browser"], axis=1)
-#dfPredict = dfPredict.drop(["first_browser"], axis=1)
-
-# for remaining date/timestamp attributes, reduce them to just the year and month
-# dfTrain["timestamp_first_active"] = dfTrain["timestamp_first_active"].astype("string").str.slice(stop=6)
-#dfPredict["timestamp_first_active"] = dfPredict["timestamp_first_active"].astype("string").str.slice(stop=6)
-
-#dfTrain["date_account_created"] = dfTrain["date_account_created"].str.slice(stop=7)
-#dfPredict["date_account_created"] = dfPredict["date_account_created"].str.slice(stop=7)
-
-
-#dfTrain.drop(dfTrain[dfTrain["date_account_created"].astype("string").str.slice(stop=4) != "2014"].index, inplace=True)
-#dfTrain.drop(dfTrain[dfTrain["timestamp_first_active"].astype("string").str.slice(stop=4) != "2014"].index, inplace=True)
-
-"""
-def encode_timestamp(timestamp):
-    year = int(str(timestamp)[:4])
-    month = int(str(timestamp)[4:6])
-    day = int(str(timestamp)[6:])
-    return (10000*year + 100*month + day) 
-
-def encode_timestamp2(timestamp):
-    year = int(str(timestamp)[:4])
-    month = int(str(timestamp)[5:7])
-    day = int(str(timestamp)[8:])
-    return np.int64(10000*year + 100*month + day) 
- 
-for i in range(len(dfTrain.index)):
-    dfTrain["timestamp_first_active"].values[i] = encode_timestamp(dfTrain["timestamp_first_active"].values[i])
-
-for i in range(len(dfPredict.index)):
-    dfPredict["timestamp_first_active"].values[i] = encode_timestamp(dfPredict["timestamp_first_active"].values[i])
-
-for i in range(len(dfTrain.index)):
-    dfTrain["date_account_created"].values[i] = encode_timestamp2(dfTrain["date_account_created"].values[i])
-
-for i in range(len(dfPredict.index)):
-    dfPredict["date_account_created"].values[i] = encode_timestamp2(dfPredict["date_account_created"].values[i])
-"""
-
 print("Class distribution after preprocessing:")
 print(dfTrain["country_destination"].value_counts())
 
@@ -103,9 +63,6 @@ def oneHotBind(original_dataframe, feature_to_encode):
 
 dfTrain = oneHotBind(dfTrain, ["gender", "signup_method", "signup_flow", "language", "affiliate_channel", "affiliate_provider", "first_affiliate_tracked", "signup_app", "first_device_type", "first_browser"])
 dfPredict = oneHotBind(dfPredict, ["gender", "signup_method", "signup_flow", "language", "affiliate_channel", "affiliate_provider", "first_affiliate_tracked", "signup_app", "first_device_type", "first_browser"])
-#dfTrain = oneHotBind(dfTrain, ["date_account_created", "gender", "age", "signup_method", "signup_flow", "language", "affiliate_channel", "affiliate_provider", "first_affiliate_tracked", "signup_app", "first_device_type", "first_browser"])
-#dfPredict = oneHotBind(dfPredict, ["date_account_created", "gender", "age", "signup_method", "signup_flow", "language", "affiliate_channel", "affiliate_provider", "first_affiliate_tracked", "signup_app", "first_device_type", "first_browser"])
-
 
 # add missing attributes
 for attribute in dfTrain.keys():
@@ -119,10 +76,6 @@ for attribute in dfPredict.keys():
         print(f"Adding missing feature {attribute} to training set")
         list = [False] * len(dfTrain.index)
         dfTrain[attribute] = False
-
-# seperate X and Y (tuple and class)
-#X, Y = dfTrain.iloc[:,1:].values, dfTrain.iloc[:, 0].values
-#X, Y = dfTrain.iloc[:,:3:].values, dfTrain.iloc[:, 3].values
 
 Y = dfTrain.iloc[:, 1].values
 X = pd.concat([dfTrain.iloc[:, :1], dfTrain.iloc[:, 2:]], axis=1).values
@@ -196,12 +149,6 @@ with Spinner():
             expanded_countries.append(p[0])
         num += 1
 
-"""
-frame = {
-    "id": ids,
-    "country": predictions
-    }
-"""
 
 frame = {
     "id": expanded_ids,
@@ -217,17 +164,4 @@ output.to_csv(predictions_file, index=False)
 
 print(f"Wrote predictions to {predictions_file}")
 
-from sklearn import tree
-import matplotlib.pyplot as plt
 
-"""
-print("Generating images of trees...\n")
-
-with Spinner():
-    for i in range(len(forest.estimators_)):
-        fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(4,4), dpi=800)
-        tree.plot_tree(forest.estimators_[i], max_depth=4, filled=True, feature_names=dfTrain.columns, class_names=forest.classes_)
-        fig.savefig(f'./forest_trees/tree{i+1}.png')
-        print(f"Saving image of tree {i+1} to ./forest_trees/tree{i+1}.png")
-
-"""
